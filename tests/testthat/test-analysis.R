@@ -65,9 +65,13 @@ test_that("Log transformation", {
                    dose_log = c('natural'),
                    family = c("continuous"),
                    constraints = NULL)
-  expect_error(do.call(dose_response_analysis, arg_list), 'Provided transformation')
-  arg_list$log_transform_dose <- TRUE
-  expect_no_error(do.call(dose_response_analysis, arg_list))
 
+  # 4 cases
+  expect_error(do.call(dose_response_analysis, arg_list), 'Dose log incompatible')
+  arg_list$dose_log <- 'none'
+  arg_list$log_transform_dose <- TRUE
+  expect_error(do.call(dose_response_analysis, arg_list), 'Dose log incompatible')
+  arg_list$dose_log <- 'natural'
+  expect_no_error(do.call(dose_response_analysis, arg_list))
 
 })

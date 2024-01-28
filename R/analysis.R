@@ -44,20 +44,25 @@ dose_response_analysis <- function(dat, response, dose,
                                    fixed_params = NULL,
                                    constraints = list()){
 
+
   form <- paste0(response, ' ~ ', dose)
 
   model_type <- match.arg(model_type)
   type <- match.arg(type)
-  logDose <- match.arg(dose_log)
+  dose_log <- match.arg(dose_log)
   family <- match.arg(family)
   log_base_map <- c(log10 = 10, natural = exp(1))
+
+  # Check transformation arguments
+  assertthat::assert_that((log_transform_dose & dose_log != 'none') | (!log_transform_dose & dose_log == 'none'), msg = "Dose log incompatible with transformation of dose")
+
 
   fn_keys <- list('log-logistic' = c("b", "c", "d", "e"))
   fn_params <- fn_keys[[model_type]]
 
   if(!is.null(fixed_params)){
     # Fixed parameters passed
-    assertthat::assert_that(all(!is.null(names(fixed_params))) && all(names(fixed_params) %in% fn_params))
+    assertthat::assert_that(all(!is.null(names(fixed_params))) & all(names(fixed_params) %in% fn_params))
     params <- utils::modifyList(stats::setNames(as.list(rep(NA, length(fn_params))), fn_params), fixed_params)
   } else{
       params <- stats::setNames(as.list(rep(NA, length(fn_params))), fn_params)
@@ -80,18 +85,14 @@ dose_response_analysis <- function(dat, response, dose,
   nonfix <- length(nonfix_names)
   assertthat::assert_that(nonfix > 0, msg = "All parameters are fixed!")
 
-  log_base_map <- c(log10 = 10, natural = exp(1))
-  # Retrieve the corresponding value
-  if (logDose != 'none') {
-    assertthat::assert_that(log_transform_dose, msg = "Provided transformation but log_transform_dose set to FALSE")
-    logDose <- log_base_map[[dose_log]]
-  } else {
-    logDose <- NULL
+  if(dose_log != 'none'){
+    powerexp <- log_base_map[[dose_log]]
+    dat[[dose]] <- powerexp^dat[[dose]]
   }
 
   if(model_type == 'log-logistic'){
     if(log_transform_dose){
-      # Use the log-transformed parametrization
+      # Use the log-transformed parametrization because logged is how the user passed it
       fct <- drc::LL2.4(fixed = unlist(params), names = names(params))
     } else{
       # Use the standard
@@ -103,7 +104,7 @@ dose_response_analysis <- function(dat, response, dose,
     # Get non-fixed parameters
     if(!is.null(constraints$upper)){
       assertthat::assert_that(is.list(constraints$upper), msg = 'Upper limits must be named list')
-      assertthat::assert_that(!any(is.null(names(constraints$upper))) && all(names(constraints$upper) %in% fn_params),
+      assertthat::assert_that(!any(is.null(names(constraints$upper))) & all(names(constraints$upper) %in% fn_params),
                               msg = 'Upper constraints must be named and match parameter names')
       # Check that constraints are not on fixed parameters
       assertthat::assert_that(!any(names(constraints$upper) %in% fix_names), msg = 'Put restrictions on parameters but fixed them as well')
@@ -114,7 +115,7 @@ dose_response_analysis <- function(dat, response, dose,
     }
     if(!is.null(constraints$lower)){
       assertthat::assert_that(is.list(constraints$lower), msg = 'Lower limits must be named list')
-      assertthat::assert_that(!any(is.null(names(constraints$lower))) && all(names(constraints$lower) %in% fn_params),
+      assertthat::assert_that(!any(is.null(names(constraints$lower))) & all(names(constraints$lower) %in% fn_params),
                               msg = 'Lower constraints must be named and match parameter names')      # Check that constraints are not on fixed parameters
       assertthat::assert_that(!any(names(constraints$lower) %in% fix_names), msg = 'Put restrictions on parameters but fixed them as well')
       lowerl <- utils::modifyList(stats::setNames(as.list(rep(-Inf, length(nonfix_names))), nonfix_names), constraints$lower)
@@ -126,7 +127,8 @@ dose_response_analysis <- function(dat, response, dose,
     upperl <- lowerl <- NULL
   }
 
-  drm <- drc::drm(formula = stats::as.formula(form), data = dat, logDose = logDose,
+
+  drm <- drc::drm(formula = stats::as.formula(form), data = dat,
                   fct = fct, upperl = upperl, lowerl = lowerl, type = family)
   return(drm)
 

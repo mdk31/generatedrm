@@ -15,7 +15,6 @@ dose_response_analysis(
   vary_slope = FALSE,
   model_type = "log-logistic",
   log_transform_dose = FALSE,
-  constant = 0.01,
   dose_log = c("none", "log10", "natural"),
   family = c("continuous", "binomial"),
   fixed_params = NULL,
@@ -38,13 +37,10 @@ Default is FALSE.}
 \item{model_type}{Character string specifying the model type to be used for analysis.
 Default is 'log-logistic'.}
 
-\item{log_transform_dose}{Logical, if TRUE, doses are log-transformed before analysis.
+\item{log_transform_dose}{Logical, set to TRUE if doses are log-transformed before entering function.
 Default is FALSE.}
 
-\item{constant}{A small constant added to dose to avoid log(0) when 'log_transform_dose' is TRUE.
-Default is 0.01.}
-
-\item{dose_log}{Character string indicating the type of logarithm to be applied to dose values.
+\item{dose_log}{Character string indicating the type of logarithm that has been applied to dose values.
 Options are 'none', 'log10', 'natural'. Default is 'none'.}
 
 \item{family}{Character string indicating the type of response variable.

@@ -32,7 +32,7 @@ test_that('Model works', {
                    vary_slope = TRUE,
                    model_type = 'log-logistic',
                    log_transform_dose = FALSE,
-                   dose_log = c('none', 'log10', 'natural'),
+                   dose_log = c('none'),
                    family = c("continuous"),
                    constraints = NULL)
   expect_no_error(do.call(dose_response_analysis, arg_list))
@@ -67,5 +67,7 @@ test_that("Log transformation", {
                    constraints = NULL)
   expect_error(do.call(dose_response_analysis, arg_list), 'Provided transformation')
   arg_list$log_transform_dose <- TRUE
+  expect_no_error(do.call(dose_response_analysis, arg_list))
+
 
 })

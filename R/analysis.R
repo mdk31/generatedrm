@@ -12,11 +12,9 @@
 #'                   Default is FALSE.
 #' @param model_type Character string specifying the model type to be used for analysis.
 #'                   Default is 'log-logistic'.
-#' @param log_transform_dose Logical, if TRUE, doses are log-transformed before analysis.
+#' @param log_transform_dose Logical, set to TRUE if doses are log-transformed before entering function.
 #'                           Default is FALSE.
-#' @param constant A small constant added to dose to avoid log(0) when 'log_transform_dose' is TRUE.
-#'                 Default is 0.01.
-#' @param dose_log Character string indicating the type of logarithm to be applied to dose values.
+#' @param dose_log Character string indicating the type of logarithm that has been applied to dose values.
 #'                 Options are 'none', 'log10', 'natural'. Default is 'none'.
 #' @param family Character string indicating the type of response variable.
 #'               Options are 'continuous' for continuous responses and 'binomial' for binomial responses.
@@ -41,7 +39,6 @@ dose_response_analysis <- function(dat, response, dose,
                                    vary_slope = FALSE,
                                    model_type = 'log-logistic',
                                    log_transform_dose = FALSE,
-                                   constant = 0.01,
                                    dose_log = c('none', 'log10', 'natural'),
                                    family = c("continuous", "binomial"),
                                    fixed_params = NULL,
@@ -55,7 +52,8 @@ dose_response_analysis <- function(dat, response, dose,
   family <- match.arg(family)
   log_base_map <- c(log10 = 10, natural = exp(1))
 
-  fn_params <- c("b", "c", "d", "e")
+  fn_keys <- list('log-logistic' = c("b", "c", "d", "e"))
+  fn_params <- fn_keys[[model_type]]
 
   if(!is.null(fixed_params)){
     # Fixed parameters passed
@@ -64,7 +62,6 @@ dose_response_analysis <- function(dat, response, dose,
   } else{
       params <- stats::setNames(as.list(rep(NA, length(fn_params))), fn_params)
   }
-
 
   if(vary_slope){
     # Do not fix slope
@@ -84,25 +81,12 @@ dose_response_analysis <- function(dat, response, dose,
   assertthat::assert_that(nonfix > 0, msg = "All parameters are fixed!")
 
   log_base_map <- c(log10 = 10, natural = exp(1))
-
-
   # Retrieve the corresponding value
   if (logDose != 'none') {
     assertthat::assert_that(log_transform_dose, msg = "Provided transformation but log_transform_dose set to FALSE")
     logDose <- log_base_map[[dose_log]]
   } else {
     logDose <- NULL
-  }
-  # Transform dose
-  if(log_transform_dose){
-    if(is.null(logDose)){
-      warning('logDose set to none, but transformation requested, using natural logs')
-      base <- exp(1)
-    } else{
-      base <- logDose
-    }
-    dat[[dose]] <- log(ifelse(dat[[dose]] == 0, dat[[dose]] + constant, dat[[dose]]), base = base)
-    fct <- drc::LL2.4(fixed = unlist(params), names = names(params))
   }
 
   if(model_type == 'log-logistic'){

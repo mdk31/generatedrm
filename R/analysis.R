@@ -208,8 +208,12 @@ create_drm_table <- function(drm_model) {
   coefs <- stats::coef(summary(drm_model))
   conf_int <- stats::confint(drm_model)
 
+  # Check parametrization of EC50
+  param <- ifelse(grepl('log\\(ED50\\)', drm_model$fct$text), 'le', 'e')
+
   rn <- row.names(coefs)
   rn <- gsub(':\\(Intercept\\)', '', rn)
+  rn <- gsub('^e$', param, rn)
   row.names(coefs) <- NULL
   row.names(conf_int) <- NULL
 

@@ -13,7 +13,7 @@ dose_response_analysis(
   model_type = "log-logistic",
   log_transform_dose = FALSE,
   dose_log = c("none", "log10", "natural"),
-  family = c("continuous", "binomial"),
+  family = c("continuous"),
   fixed_params = NULL,
   constraints = list()
 )
@@ -41,7 +41,7 @@ Default is FALSE.}
 Options are 'none', 'log10', 'natural'. Default is 'none'.}
 
 \item{family}{Character string indicating the type of response variable.
-Options are 'continuous' for continuous responses and 'binomial' for binomial responses.
+Options are currently only 'continuous' for continuous responses.
 Default is 'continuous'.}
 
 \item{fixed_params}{A named list of parameters to be kept fixed during the analysis.

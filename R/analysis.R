@@ -18,7 +18,7 @@
 #' @param dose_log Character string indicating the type of logarithm that has been applied to dose values.
 #'                 Options are 'none', 'log10', 'natural'. Default is 'none'.
 #' @param family Character string indicating the type of response variable.
-#'               Options are 'continuous' for continuous responses and 'binomial' for binomial responses.
+#'               Options are currently only 'continuous' for continuous responses.
 #'               Default is 'continuous'.
 #' @param fixed_params A named list of parameters to be kept fixed during the analysis.
 #'                     Default is NULL.
@@ -41,7 +41,7 @@ dose_response_analysis <- function(dat, response, dose,
                                    model_type = 'log-logistic',
                                    log_transform_dose = FALSE,
                                    dose_log = c('none', 'log10', 'natural'),
-                                   family = c("continuous", "binomial"),
+                                   family = c("continuous"),
                                    fixed_params = NULL,
                                    constraints = list()){
 
@@ -57,15 +57,16 @@ dose_response_analysis <- function(dat, response, dose,
   # Check transformation arguments
   assertthat::assert_that((log_transform_dose & dose_log != 'none') | (!log_transform_dose & dose_log == 'none'), msg = "Dose log incompatible with transformation of dose")
 
-
   fn_keys <- list('log-logistic' = c("b", "c", "d", "e"))
   fn_params <- fn_keys[[model_type]]
 
   if(!is.null(fixed_params)){
     # Fixed parameters passed
     assertthat::assert_that(all(!is.null(names(fixed_params))) & all(names(fixed_params) %in% fn_params))
+    # Create a list of total parameters with the user-specified ones put in
     params <- utils::modifyList(stats::setNames(as.list(rep(NA, length(fn_params))), fn_params), fixed_params)
   } else{
+    # Otherwise no fixed parameters (until slope check)
       params <- stats::setNames(as.list(rep(NA, length(fn_params))), fn_params)
   }
 
@@ -75,6 +76,7 @@ dose_response_analysis <- function(dat, response, dose,
   } else{
     # DRC paramatrizes the slope differently
     if(is.na(params[['b']])){
+      # If the user didn't specify a slope, use defaults
       slope_param <- ifelse(type == 'stimulation', -1, +1)
       params[['b']] <- slope_param
     }
@@ -86,6 +88,7 @@ dose_response_analysis <- function(dat, response, dose,
   nonfix <- length(nonfix_names)
   assertthat::assert_that(nonfix > 0, msg = "All parameters are fixed!")
 
+  # Undo any transformations applied to data
   if(dose_log != 'none'){
     powerexp <- log_base_map[[dose_log]]
     dat[[dose]] <- powerexp^dat[[dose]]
@@ -128,7 +131,6 @@ dose_response_analysis <- function(dat, response, dose,
     upperl <- lowerl <- NULL
   }
 
-
   drm <- drc::drm(formula = stats::as.formula(form), data = dat,
                   fct = fct, upperl = upperl, lowerl = lowerl, type = family)
   return(drm)
@@ -158,7 +160,6 @@ dose_response_analysis <- function(dat, response, dose,
 plot_drc_with_confidence <- function(drc_model, dose_column, response_column) {
   # Generate a sequence of doses
   data <- drc_model$origData
-
   doselab <- ifelse(!is.null(drc_model$logDose), 'log(dose)', 'dose')
 
   dose_seq <- seq(min(data[[dose_column]]), max(data[[dose_column]]), length.out = 100)
@@ -194,9 +195,6 @@ plot_drc_with_confidence <- function(drc_model, dose_column, response_column) {
 #' @param drm_model An object of class 'drm', typically the result of fitting a dose-response model
 #'                  using the 'drm' function from the 'drc' package.
 #'
-#' @return A character string containing the formatted table, which can be displayed in R Markdown
-#'         documents or other formats supported by the 'knitr' package.
-#'
 #' @export
 #'
 #' @examples
@@ -227,7 +225,6 @@ create_drm_table <- function(drm_model) {
     `Lower CI` = conf_int[, 1],
     `Upper CI` = conf_int[, 2]
   )
-
   results
 }
 

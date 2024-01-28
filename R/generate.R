@@ -37,6 +37,7 @@ generate_binomial_data <- function(dose, trials, fn, ...){
   assertthat::assert_that(length(trials) == n)
   probs <- fn(dose, ...)
   y <- stats::rbinom(n, size = trials, prob = probs)
+  data.frame(dose = dose, response = y, trials = trials)
 }
 
 #' @rdname generate
@@ -45,10 +46,9 @@ generate_count_data <- function(dose, fn, ...){
   lambda <- fn(dose, ...)
   assertthat::assert_that(length(lambda) == n)
   y <- stats::rpois(n, lambda)
+  data.frame(dose = dose, response = y)
 
 }
-
-
 
 #' Log-Logistic Function
 #'

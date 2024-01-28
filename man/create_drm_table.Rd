@@ -10,10 +10,6 @@ create_drm_table(drm_model)
 \item{drm_model}{An object of class 'drm', typically the result of fitting a dose-response model
 using the 'drm' function from the 'drc' package.}
 }
-\value{
-A character string containing the formatted table, which can be displayed in R Markdown
-documents or other formats supported by the 'knitr' package.
-}
 \description{
 This function generates a summary table from a dose-response model object.
 The table includes estimates, standard errors, t-values, p-values, and confidence intervals

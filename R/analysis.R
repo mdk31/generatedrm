@@ -1,4 +1,5 @@
 #'Dose Response Analysis
+#'
 #' This function performs a dose-response analysis using various model types and options.
 #' It allows for handling both stimulation and inhibition type responses with options
 #' for fixing parameters, log-transforming doses, and applying constraints on model parameters.
@@ -192,9 +193,6 @@ plot_drc_with_confidence <- function(drc_model, dose_column, response_column) {
 #'
 #' @param drm_model An object of class 'drm', typically the result of fitting a dose-response model
 #'                  using the 'drm' function from the 'drc' package.
-#' @param format A character string specifying the output format of the table.
-#'               Possible values include 'markdown', 'html', 'latex', etc.
-#'               Default is 'markdown'.
 #'
 #' @return A character string containing the formatted table, which can be displayed in R Markdown
 #'         documents or other formats supported by the 'knitr' package.
@@ -204,14 +202,20 @@ plot_drc_with_confidence <- function(drc_model, dose_column, response_column) {
 #' @examples
 #' data_frame <- data.frame(dose = 1:10, response = rnorm(10))
 #' result <- dose_response_analysis(dat = data_frame, response = "response", dose = "dose")
-#' create_drm_table(result, format = 'markdown')
-create_drm_table <- function(drm_model, format = 'markdown') {
+#' create_drm_table(result)
+create_drm_table <- function(drm_model) {
   # Extract model coefficients and confidence intervals
   coefs <- stats::coef(summary(drm_model))
   conf_int <- stats::confint(drm_model)
 
+  rn <- row.names(coefs)
+  rn <- gsub(':(Intercept)', '', rn)
+  row.names(coefs) <- NULL
+  row.names(conf_int) <- NULL
+
   # Combine information into a single data frame
   results <- data.frame(
+    Coefficients = rn,
     Estimate = coefs[, "Estimate"],
     Std.Error = coefs[, "Std. Error"],
     `t value` = coefs[, "t-value"],
@@ -220,7 +224,6 @@ create_drm_table <- function(drm_model, format = 'markdown') {
     `Upper CI` = conf_int[, 2]
   )
 
-  # Create kable table
-  knitr::kable(results, format = format)
+  results
 }
 

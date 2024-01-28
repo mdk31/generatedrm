@@ -66,6 +66,6 @@ test_that("Log transformation", {
                    family = c("continuous"),
                    constraints = NULL)
   expect_error(do.call(dose_response_analysis, arg_list), 'Provided transformation')
+  arg_list$log_transform_dose <- TRUE
 
-  # Test that log transformation works
 })

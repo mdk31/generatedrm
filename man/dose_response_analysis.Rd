@@ -2,7 +2,10 @@
 % Please edit documentation in R/analysis.R
 \name{dose_response_analysis}
 \alias{dose_response_analysis}
-\title{Dose Response Analysis}
+\title{Dose Response Analysis
+This function performs a dose-response analysis using various model types and options.
+It allows for handling both stimulation and inhibition type responses with options
+for fixing parameters, log-transforming doses, and applying constraints on model parameters.}
 \usage{
 dose_response_analysis(
   dat,
@@ -13,7 +16,6 @@ dose_response_analysis(
   model_type = "log-logistic",
   log_transform_dose = FALSE,
   constant = 0.01,
-  normalized_response = FALSE,
   dose_log = c("none", "log10", "natural"),
   family = c("continuous", "binomial"),
   fixed_params = NULL,
@@ -21,8 +23,53 @@ dose_response_analysis(
 )
 }
 \arguments{
-\item{constraints}{}
+\item{dat}{A data frame containing the data to be analyzed.}
+
+\item{response}{A string naming the column in 'dat' that contains the response variable.}
+
+\item{dose}{A string naming the column in 'dat' that contains the dose variable.}
+
+\item{type}{Character string indicating the type of response; either 'stimulation' or 'inhibition'.
+Default is 'stimulation'. Only used if slope is not specified.}
+
+\item{vary_slope}{Logical, if TRUE, the slope of the response curve is not fixed and is estimated from the data.
+Default is FALSE.}
+
+\item{model_type}{Character string specifying the model type to be used for analysis.
+Default is 'log-logistic'.}
+
+\item{log_transform_dose}{Logical, if TRUE, doses are log-transformed before analysis.
+Default is FALSE.}
+
+\item{constant}{A small constant added to dose to avoid log(0) when 'log_transform_dose' is TRUE.
+Default is 0.01.}
+
+\item{dose_log}{Character string indicating the type of logarithm to be applied to dose values.
+Options are 'none', 'log10', 'natural'. Default is 'none'.}
+
+\item{family}{Character string indicating the type of response variable.
+Options are 'continuous' for continuous responses and 'binomial' for binomial responses.
+Default is 'continuous'.}
+
+\item{fixed_params}{A named list of parameters to be kept fixed during the analysis.
+Default is NULL.}
+
+\item{constraints}{A list containing 'upper' and 'lower' named lists to set constraints on parameters.
+Default is an empty list.}
+}
+\value{
+An object of class 'drm' (dose-response model) as returned by drc::drm().
 }
 \description{
 Dose Response Analysis
+This function performs a dose-response analysis using various model types and options.
+It allows for handling both stimulation and inhibition type responses with options
+for fixing parameters, log-transforming doses, and applying constraints on model parameters.
+}
+\examples{
+# Example data frame
+data_frame <- data.frame(dose = 1:10, response = rnorm(10))
+# Example usage
+result <- dose_response_analysis(dat = data_frame, response = "response", dose = "dose")
+print(result)
 }

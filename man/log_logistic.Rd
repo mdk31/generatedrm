@@ -2,13 +2,24 @@
 % Please edit documentation in R/generate.R
 \name{log_logistic}
 \alias{log_logistic}
-\title{Title}
+\title{Log-Logistic Function}
 \usage{
-log_logistic(x, bottom, top, e, slope)
+log_logistic(x, c, d, e, b)
 }
 \arguments{
-\item{slope}{}
+\item{x}{A numeric vector of doses}
+
+\item{c}{The lower limit}
+
+\item{d}{The upper limit}
+
+\item{e}{The EC/IC50, the response halfway between the upper and lower limit}
+
+\item{b}{The Hill slope}
+}
+\value{
+A numeric vector of mean responses
 }
 \description{
-Title
+Main model used to generate mean responses. Most commonly used in fitting dose-respones relationships
 }

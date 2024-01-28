@@ -2,13 +2,29 @@
 % Please edit documentation in R/analysis.R
 \name{plot_drc_with_confidence}
 \alias{plot_drc_with_confidence}
-\title{Plot Results}
+\title{Plot Dose-Response Curve with Confidence Intervals}
 \usage{
 plot_drc_with_confidence(drc_model, dose_column, response_column)
 }
 \arguments{
-\item{response_column}{}
+\item{drc_model}{An object of class 'drc', typically the result of fitting a dose-response model
+using the 'drm' function from the 'drc' package.}
+
+\item{dose_column}{The name of the column in the original data used for doses.}
+
+\item{response_column}{The name of the column in the original data used for responses.}
+}
+\value{
+A ggplot object representing the dose-response curve with confidence intervals.
+The plot includes the original data points, the fitted dose-response curve,
+and a shaded area representing the confidence intervals.
 }
 \description{
-Plot Results
+This function plots a dose-response curve using a model object from the 'drc' package.
+It includes confidence intervals to visually assess the uncertainty in the model predictions.
+}
+\examples{
+data_frame <- data.frame(dose = 1:10, response = rnorm(10))
+result <- dose_response_analysis(dat = data_frame, response = "response", dose = "dose")
+plot_drc_with_confidence(result, "dose", "response")
 }

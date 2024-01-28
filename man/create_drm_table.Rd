@@ -2,13 +2,29 @@
 % Please edit documentation in R/analysis.R
 \name{create_drm_table}
 \alias{create_drm_table}
-\title{Create Table}
+\title{Create a Summary Table from a Dose-Response Model}
 \usage{
 create_drm_table(drm_model, format = "markdown")
 }
 \arguments{
-\item{format}{}
+\item{drm_model}{An object of class 'drm', typically the result of fitting a dose-response model
+using the 'drm' function from the 'drc' package.}
+
+\item{format}{A character string specifying the output format of the table.
+Possible values include 'markdown', 'html', 'latex', etc.
+Default is 'markdown'.}
+}
+\value{
+A character string containing the formatted table, which can be displayed in R Markdown
+documents or other formats supported by the 'knitr' package.
 }
 \description{
-Create Table
+This function generates a summary table from a dose-response model object.
+The table includes estimates, standard errors, t-values, p-values, and confidence intervals
+for the model parameters. The table can be formatted in various styles using the 'knitr' package.
+}
+\examples{
+data_frame <- data.frame(dose = 1:10, response = rnorm(10))
+result <- dose_response_analysis(dat = data_frame, response = "response", dose = "dose")
+create_drm_table(result, format = 'markdown')
 }

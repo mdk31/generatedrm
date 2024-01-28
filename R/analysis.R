@@ -1,33 +1,47 @@
-
-
-
-#' Dose Response Analysis
+#'Dose Response Analysis
+#' This function performs a dose-response analysis using various model types and options.
+#' It allows for handling both stimulation and inhibition type responses with options
+#' for fixing parameters, log-transforming doses, and applying constraints on model parameters.
 #'
-#' @param dat
-#' @param response
-#' @param dose
-#' @param type
-#' @param vary_slope
-#' @param model_type
-#' @param log_transform_dose
-#' @param normalized_response
-#' @param dose_log
-#' @param normalize_response
-#' @param family
-#' @param fixed_params
-#' @param constraints
+#' @param dat A data frame containing the data to be analyzed.
+#' @param response A string naming the column in 'dat' that contains the response variable.
+#' @param dose A string naming the column in 'dat' that contains the dose variable.
+#' @param type Character string indicating the type of response; either 'stimulation' or 'inhibition'.
+#'             Default is 'stimulation'. Only used if slope is not specified.
+#' @param vary_slope Logical, if TRUE, the slope of the response curve is not fixed and is estimated from the data.
+#'                   Default is FALSE.
+#' @param model_type Character string specifying the model type to be used for analysis.
+#'                   Default is 'log-logistic'.
+#' @param log_transform_dose Logical, if TRUE, doses are log-transformed before analysis.
+#'                           Default is FALSE.
+#' @param constant A small constant added to dose to avoid log(0) when 'log_transform_dose' is TRUE.
+#'                 Default is 0.01.
+#' @param dose_log Character string indicating the type of logarithm to be applied to dose values.
+#'                 Options are 'none', 'log10', 'natural'. Default is 'none'.
+#' @param family Character string indicating the type of response variable.
+#'               Options are 'continuous' for continuous responses and 'binomial' for binomial responses.
+#'               Default is 'continuous'.
+#' @param fixed_params A named list of parameters to be kept fixed during the analysis.
+#'                     Default is NULL.
+#' @param constraints A list containing 'upper' and 'lower' named lists to set constraints on parameters.
+#'                    Default is an empty list.
 #'
-#' @return
+#' @return An object of class 'drm' (dose-response model) as returned by drc::drm().
+#'
 #' @export
 #'
 #' @examples
+#' # Example data frame
+#' data_frame <- data.frame(dose = 1:10, response = rnorm(10))
+#' # Example usage
+#' result <- dose_response_analysis(dat = data_frame, response = "response", dose = "dose")
+#' print(result)
 dose_response_analysis <- function(dat, response, dose,
                                    type = c('stimulation', 'inhibition'),
                                    vary_slope = FALSE,
                                    model_type = 'log-logistic',
                                    log_transform_dose = FALSE,
                                    constant = 0.01,
-                                   normalized_response = FALSE,
                                    dose_log = c('none', 'log10', 'natural'),
                                    family = c("continuous", "binomial"),
                                    fixed_params = NULL,
@@ -46,9 +60,9 @@ dose_response_analysis <- function(dat, response, dose,
   if(!is.null(fixed_params)){
     # Fixed parameters passed
     assertthat::assert_that(all(!is.null(names(fixed_params))) && all(names(fixed_params) %in% fn_params))
-    params <- utils::modifyList(setNames(as.list(rep(NA, length(fn_params))), fn_params), fixed_params)
+    params <- utils::modifyList(stats::setNames(as.list(rep(NA, length(fn_params))), fn_params), fixed_params)
   } else{
-      params <- setNames(as.list(rep(NA, length(fn_params))), fn_params)
+      params <- stats::setNames(as.list(rep(NA, length(fn_params))), fn_params)
   }
 
 
@@ -109,7 +123,7 @@ dose_response_analysis <- function(dat, response, dose,
                               msg = 'Upper constraints must be named and match parameter names')
       # Check that constraints are not on fixed parameters
       assertthat::assert_that(!any(names(constraints$upper) %in% fix_names), msg = 'Put restrictions on parameters but fixed them as well')
-      upperl <- utils::modifyList(setNames(as.list(rep(Inf, length(nonfix_names))), nonfix_names), constraints$upper)
+      upperl <- utils::modifyList(stats::setNames(as.list(rep(Inf, length(nonfix_names))), nonfix_names), constraints$upper)
       upperl <- unlist(upperl)
     } else{
       upperl <- NULL
@@ -119,7 +133,7 @@ dose_response_analysis <- function(dat, response, dose,
       assertthat::assert_that(!any(is.null(names(constraints$lower))) && all(names(constraints$lower) %in% fn_params),
                               msg = 'Lower constraints must be named and match parameter names')      # Check that constraints are not on fixed parameters
       assertthat::assert_that(!any(names(constraints$lower) %in% fix_names), msg = 'Put restrictions on parameters but fixed them as well')
-      lowerl <- utils::modifyList(setNames(as.list(rep(-Inf, length(nonfix_names))), nonfix_names), constraints$lower)
+      lowerl <- utils::modifyList(stats::setNames(as.list(rep(-Inf, length(nonfix_names))), nonfix_names), constraints$lower)
       lowerl <- unlist(lowerl)
     } else{
       lowerl <- NULL
@@ -128,23 +142,32 @@ dose_response_analysis <- function(dat, response, dose,
     upperl <- lowerl <- NULL
   }
 
-  drm <- drc::drm(formula = as.formula(form), data = dat, logDose = logDose,
+  drm <- drc::drm(formula = stats::as.formula(form), data = dat, logDose = logDose,
                   fct = fct, upperl = upperl, lowerl = lowerl, type = family)
   return(drm)
 
 }
 
-# # Function to plot with confidence intervals
-#' Plot Results
+#' Plot Dose-Response Curve with Confidence Intervals
 #'
-#' @param drc_model
-#' @param dose_column
-#' @param response_column
+#' This function plots a dose-response curve using a model object from the 'drc' package.
+#' It includes confidence intervals to visually assess the uncertainty in the model predictions.
 #'
-#' @return
+#' @param drc_model An object of class 'drc', typically the result of fitting a dose-response model
+#'                  using the 'drm' function from the 'drc' package.
+#' @param dose_column The name of the column in the original data used for doses.
+#' @param response_column The name of the column in the original data used for responses.
+#'
+#' @return A ggplot object representing the dose-response curve with confidence intervals.
+#'         The plot includes the original data points, the fitted dose-response curve,
+#'         and a shaded area representing the confidence intervals.
+#'
 #' @export
 #'
 #' @examples
+#' data_frame <- data.frame(dose = 1:10, response = rnorm(10))
+#' result <- dose_response_analysis(dat = data_frame, response = "response", dose = "dose")
+#' plot_drc_with_confidence(result, "dose", "response")
 plot_drc_with_confidence <- function(drc_model, dose_column, response_column) {
   # Generate a sequence of doses
   data <- drc_model$origData
@@ -157,7 +180,7 @@ plot_drc_with_confidence <- function(drc_model, dose_column, response_column) {
   pred_data <- data.frame(Dose = dose_seq)
 
   # Predict responses and confidence intervals at these doses
-  preds <- suppressWarnings(predict(drc_model, newdata = pred_data, interval = "confidence"))
+  preds <- suppressWarnings(stats::predict(drc_model, newdata = pred_data, interval = "confidence"))
 
   # Add predictions and confidence intervals to the data frame
   pred_data$Response <- preds[,1]
@@ -175,20 +198,31 @@ plot_drc_with_confidence <- function(drc_model, dose_column, response_column) {
     ggplot2::ggtitle("Dose-Response Curve with Confidence Intervals")
 }
 
-# Function to create a kable table from drm model output
-#' Create Table
+#' Create a Summary Table from a Dose-Response Model
 #'
-#' @param drm_model
-#' @param format
+#' This function generates a summary table from a dose-response model object.
+#' The table includes estimates, standard errors, t-values, p-values, and confidence intervals
+#' for the model parameters. The table can be formatted in various styles using the 'knitr' package.
 #'
-#' @return
+#' @param drm_model An object of class 'drm', typically the result of fitting a dose-response model
+#'                  using the 'drm' function from the 'drc' package.
+#' @param format A character string specifying the output format of the table.
+#'               Possible values include 'markdown', 'html', 'latex', etc.
+#'               Default is 'markdown'.
+#'
+#' @return A character string containing the formatted table, which can be displayed in R Markdown
+#'         documents or other formats supported by the 'knitr' package.
+#'
 #' @export
 #'
 #' @examples
+#' data_frame <- data.frame(dose = 1:10, response = rnorm(10))
+#' result <- dose_response_analysis(dat = data_frame, response = "response", dose = "dose")
+#' create_drm_table(result, format = 'markdown')
 create_drm_table <- function(drm_model, format = 'markdown') {
   # Extract model coefficients and confidence intervals
-  coefs <- coef(summary(drm_model))
-  conf_int <- confint(drm_model)
+  coefs <- stats::coef(summary(drm_model))
+  conf_int <- stats::confint(drm_model)
 
   # Combine information into a single data frame
   results <- data.frame(
@@ -203,8 +237,4 @@ create_drm_table <- function(drm_model, format = 'markdown') {
   # Create kable table
   knitr::kable(results, format = format)
 }
-
-# Example usage
-# drm_model <- drm(response ~ dose, data = your_data, fct = your_model)
-# create_drm_table(drm_model)
 

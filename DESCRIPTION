@@ -14,7 +14,6 @@ Imports:
     assertthat,
     drc,
     ggplot2,
-    knitr,
     stats,
     utils
 Suggests: 

@@ -2,10 +2,7 @@
 % Please edit documentation in R/analysis.R
 \name{dose_response_analysis}
 \alias{dose_response_analysis}
-\title{Dose Response Analysis
-This function performs a dose-response analysis using various model types and options.
-It allows for handling both stimulation and inhibition type responses with options
-for fixing parameters, log-transforming doses, and applying constraints on model parameters.}
+\title{Dose Response Analysis}
 \usage{
 dose_response_analysis(
   dat,
@@ -57,7 +54,6 @@ Default is an empty list.}
 An object of class 'drm' (dose-response model) as returned by drc::drm().
 }
 \description{
-Dose Response Analysis
 This function performs a dose-response analysis using various model types and options.
 It allows for handling both stimulation and inhibition type responses with options
 for fixing parameters, log-transforming doses, and applying constraints on model parameters.

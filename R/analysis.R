@@ -209,13 +209,13 @@ create_drm_table <- function(drm_model) {
   conf_int <- stats::confint(drm_model)
 
   rn <- row.names(coefs)
-  rn <- gsub(':(Intercept)', '', rn)
+  rn <- gsub(':\\(Intercept\\)', '', rn)
   row.names(coefs) <- NULL
   row.names(conf_int) <- NULL
 
   # Combine information into a single data frame
   results <- data.frame(
-    Coefficients = rn,
+    Coefficient = rn,
     Estimate = coefs[, "Estimate"],
     Std.Error = coefs[, "Std. Error"],
     `t value` = coefs[, "t-value"],

@@ -13,6 +13,7 @@ dose_response_analysis(
   model_type = "log-logistic",
   log_transform_dose = FALSE,
   dose_log = c("none", "log10", "natural"),
+  constant = 0.01,
   family = c("continuous"),
   fixed_params = NULL,
   constraints = list()
@@ -34,11 +35,13 @@ Default is FALSE.}
 \item{model_type}{Character string specifying the model type to be used for analysis.
 Default is 'log-logistic'.}
 
-\item{log_transform_dose}{Logical, set to TRUE if doses are log-transformed before entering function.
+\item{log_transform_dose}{Logical, set to TRUE if you want to log-transform doses before entering function.
 Default is FALSE.}
 
-\item{dose_log}{Character string indicating the type of logarithm that has been applied to dose values.
+\item{dose_log}{Character string indicating the type of logarithm that will be applied to dose values.
 Options are 'none', 'log10', 'natural'. Default is 'none'.}
+
+\item{constant}{Numeric string to be added to 0 dose values when log transforming.}
 
 \item{family}{Character string indicating the type of response variable.
 Options are currently only 'continuous' for continuous responses.

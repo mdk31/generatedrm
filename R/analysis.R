@@ -13,10 +13,11 @@
 #'                   Default is FALSE.
 #' @param model_type Character string specifying the model type to be used for analysis.
 #'                   Default is 'log-logistic'.
-#' @param log_transform_dose Logical, set to TRUE if doses are log-transformed before entering function.
+#' @param log_transform_dose Logical, set to TRUE if you want to log-transform doses before entering function.
 #'                           Default is FALSE.
-#' @param dose_log Character string indicating the type of logarithm that has been applied to dose values.
+#' @param dose_log Character string indicating the type of logarithm that will be applied to dose values.
 #'                 Options are 'none', 'log10', 'natural'. Default is 'none'.
+#' @param constant Numeric string to be added to 0 dose values when log transforming.
 #' @param family Character string indicating the type of response variable.
 #'               Options are currently only 'continuous' for continuous responses.
 #'               Default is 'continuous'.
@@ -41,6 +42,7 @@ dose_response_analysis <- function(dat, response, dose,
                                    model_type = 'log-logistic',
                                    log_transform_dose = FALSE,
                                    dose_log = c('none', 'log10', 'natural'),
+                                   constant = 0.01,
                                    family = c("continuous"),
                                    fixed_params = NULL,
                                    constraints = list()){
@@ -91,7 +93,10 @@ dose_response_analysis <- function(dat, response, dose,
   # Undo any transformations applied to data
   if(dose_log != 'none'){
     powerexp <- log_base_map[[dose_log]]
-    dat[[dose]] <- powerexp^dat[[dose]]
+    dat[[dose]] <- log(ifelse(dat[[dose]] == 0, dat[[dose]] + constant, dat[[dose]]), base = powerexp)
+    logDose <- powerexp
+  } else{
+    logDose <- NULL
   }
 
   if(model_type == 'log-logistic'){
@@ -131,7 +136,7 @@ dose_response_analysis <- function(dat, response, dose,
     upperl <- lowerl <- NULL
   }
 
-  drm <- drc::drm(formula = stats::as.formula(form), data = dat,
+  drm <- drc::drm(formula = stats::as.formula(form), data = dat, logDose = logDose,
                   fct = fct, upperl = upperl, lowerl = lowerl, type = family)
   return(drm)
 
